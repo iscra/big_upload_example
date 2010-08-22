@@ -1,0 +1,120 @@
+<% content_for :head do %>
+
+  <script type="text/javascript">
+    $(function() {
+
+      $('form').uploadProgress({
+        /* scripts locations for safari */
+        start:function(){},
+        uploading: function(upload) {$('#status').html('Uploading '+upload.percents+'%');},
+        interval: 1000
+      });
+
+    });
+
+    $(document).ready(function() {
+
+      $('#upload_upload').change(function(){
+
+        $(this).parent().ajaxSubmit({
+          beforeSubmit: function(a,f,o) {
+            o.dataType = 'json';
+
+            options = {
+              dataType: "json",
+              interval: 1000,
+              progressBar: "#progressbar",
+              progressUrl: "/progress",
+              start: function() {},
+              uploading: function(upload) {$('#status').html('Uploading '+upload.percents+'%');},
+              complete: function() {},
+              success: function() {},
+              error: function() {},
+              preloadImages: [],
+              uploadProgressPath: '/javascripts/jquery.uploadProgress.js',
+              jqueryPath: '/javascripts/jquery.js',
+              timer: ""
+            };
+            var uuid = "";
+            for (i = 0; i < 32; i++) { uuid += Math.floor(Math.random() * 16).toString(16); }
+
+            /* update uuid */
+            options.uuid = uuid;
+            /* start callback */
+            options.start();
+
+            /* patch the form-action tag to include the progress-id if X-Progress-ID has been already added just replace it */
+            if(old_id = /X-Progress-ID=([^&]+)/.exec($(this).attr("action"))) {
+              var action = $(this).attr("action").replace(old_id[1], uuid);
+              $(f).attr("action", action);
+            } else {
+              $(f).attr("action", jQuery(f).attr("action") + "?X-Progress-ID=" + uuid);
+            }
+            var uploadProgress = $.browser.safari ? progressFrame.jQuery.uploadProgress : jQuery.uploadProgress;
+            options.timer = window.setInterval(function() { uploadProgress(f, options) }, options.interval);
+
+          },
+          complete: function(XMLHttpRequest, textStatus) {
+            // XMLHttpRequest.responseText will contain the URL of the uploaded image.
+            // Put it in an image element you create, or do with it what you will.
+            // For example, if you have an image elemtn with id "my_image", then
+            //  $('#my_image').attr('src', XMLHttpRequest.responseText);
+            // Will set that image tag to display the uploaded image.
+            $('#status').html('File uploaded: '+XMLHttpRequest.responseText);
+          },
+        });
+      });
+
+    });
+
+  </script>
+  <style type="text/css">
+    .bar {
+      width: 300px;
+    }
+
+    #progress {
+      background: #eee;
+      border: 1px solid #222;
+      margin-top: 20px;
+      display: inline-block;
+    }
+    #progressbar {
+      width: 0px;
+      height: 24px;
+      background: #333;
+      display: inline-block;
+    }
+  </style>
+
+<% end %>
+
+<h2>New upload:</h2>
+<% form_for @upload, :html => { :multipart => true } do |form| %>
+  <p>
+    <% if @upload.upload_file_name.blank? %>
+      <span id="status">Select a file:</span>
+      <%= form.file_field :upload %>
+    <div id="uploading">
+      <div id="progress" class="bar">
+        <div id="progressbar">&nbsp;</div>
+      </div>
+    </div>
+  <% else %>
+    <span>Uploaded file name: <%= @upload.upload_file_name%></span>
+  <% end %>
+  </p>
+  <p>
+    <%= form.label :title %>
+    <%= form.text_field :title %>
+  </p>
+  <p>
+    <%= form.submit 'submit', :class => 'submit' %>
+  </p>
+<% end %>
+
+<div class='uploads'>
+  <h2>Uploads</h2>
+  <%= render :partial => 'upload', :collection => @uploads %>
+</div>
+

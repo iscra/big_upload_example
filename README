@@ -1,0 +1,22 @@
+
+Solution
+
+Client side
+Javascript for uploading, polling progress and rendering it. Available on required platforms. Using standard upload
+method honoring browser settings and using HTTP, so it should work with firewalls.
+
+Using ready jQuery helper compatible with the server upload module.
+http://github.com/drogus/jquery-upload-progress
+Jquery form helper for AJAx form submit:
+http://plugins.jquery.com/project/form
+
+Server side
+Specialized "big" upload server showing current progress. Using special module for apache (or nginx).
+Saving uploads in filesystem, progress available to query in JSON format. Low overhead per upload running.
+
+Implemented as apache module
+http://piotrsarnacki.com/2008/06/18/upload-progress-bar-with-mod_passenger-and-apache/
+
+Alternatives:
+client in HTML5 Javascript using xhr POST/WebSockets for upload
+server - event based to handle more clients (EventMachine/node.js)
