@@ -1,22 +1,71 @@
 
-Solution
+= Solution for uploading big files with progress bar.
 
-Client side
-Javascript for uploading, polling progress and rendering it. Available on required platforms. Using standard upload
+== Client side
+Javascript for uploading, polling progress and rendering it.
+Available on required platforms. Using standard upload
 method honoring browser settings and using HTTP, so it should work with firewalls.
 
 Using ready jQuery helper compatible with the server upload module.
 http://github.com/drogus/jquery-upload-progress
-Jquery form helper for AJAx form submit:
-http://plugins.jquery.com/project/form
 
-Server side
-Specialized "big" upload server showing current progress. Using special module for apache (or nginx).
-Saving uploads in filesystem, progress available to query in JSON format. Low overhead per upload running.
+TODO: check real async foom upload with Jquery form helper for AJAx form submit
+(http://plugins.jquery.com/project/form)
 
+== Server side
+
+=== Upload tracking
+Specialized upload server showing current progress. Using special module for apache (or nginx).
+Saving uploads in filesystem, progress available to query in JSON format.
+Low overhead per upload running (just apache mod), good performance.
 Implemented as apache module
 http://piotrsarnacki.com/2008/06/18/upload-progress-bar-with-mod_passenger-and-apache/
+See this blog for install instructions.
 
-Alternatives:
+=== RoR application code
+Using standard RoR model (with Paperclip for attachment) and controller.
+View modified to include JS for displaying upload progress.
+
+
+== Alternatives:
 client in HTML5 Javascript using xhr POST/WebSockets for upload
 server - event based to handle more clients (EventMachine/node.js)
+
+
+== Example Apache config:
+
+<VirtualHost *:80>
+        ServerName rails.local
+
+        DocumentRoot "/home/ah/src/file_upload/public"
+        RailsEnv development
+        RailsAllowModRewrite off
+
+        <Directory "/home/ah/src/file_upload/public">
+                #Options Indexes FollowSymLinks MultiViews
+                #AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ErrorLog /var/log/apache2/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel info
+
+        CustomLog /var/log/apache2/access.log combined
+
+
+ # needed for tracking upload progess
+    <Location />
+        # enable tracking uploads in /
+        TrackUploads On
+    </Location>
+
+    <Location /progress>
+        # enable upload progress reports in /progress
+        ReportUploads On
+    </Location>
+
+</VirtualHost>

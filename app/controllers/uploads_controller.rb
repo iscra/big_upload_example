@@ -7,7 +7,7 @@ class UploadsController < ApplicationController
     # generate a unique id for the upload
     @uuid = (0..29).to_a.map {|x| rand(10)}
     @upload = Upload.last 
-    if @upload && !@upload.title.blank?
+    if !@upload || !@upload.title.blank?
       @upload = Upload.new # create new one
     end
     logger.debug "upload: #{@upload.inspect}"
@@ -15,13 +15,12 @@ class UploadsController < ApplicationController
 
   def create
     @upload = Upload.new(params[:upload])
+    if @upload.save
+      flash[:notice] = "Upload created"
+    end
     respond_to do |wants|
-      if @upload.save
-        flash[:notice] = "Upload created"
-        wants.html { redirect_to(:action => 'index') }
-      else
-        wants.html { redirect_to(:action => 'index') }
-      end
+      wants.html { redirect_to(:action => 'index') }
+      wants.json { render :text => @upload.upload_file_name }
     end
   end
 
